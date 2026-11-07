@@ -58,6 +58,10 @@ The store wants to keep customer addresses. Propose two architectures for the CU
 
 ```
 Your answer...
+type 1: primary/ foreign key to identify customer and update address by overwriting previous address entry
+type 2: adds a new row for each updated address, a column indicating the date of last update, and another column for whether or not the address is current (yes/no)
+type 1 overwrites changes and type 2 retains changes
+
 ```
 
 ***
@@ -87,6 +91,10 @@ FROM product
 
 But wait! The product table has some bad data (a few NULL values). 
 Find the NULLs and then using COALESCE, replace the NULL with a blank for the first column with nulls, and 'unit' for the second column with nulls. 
+
+SELECT product_name || ', ' || COALESCE(product_size, '')|| ' (' || COALESCE(product_qty_type, 'unit') || ')'
+FROM product;
+
 
 **HINT**: keep the syntax the same, but edited the correct components with the string. The `||` values concatenate the columns into strings. Edit the appropriate columns -- you're making two edits -- and the NULL rows will be fixed. All the other rows will remain the same.
 
@@ -160,7 +168,7 @@ Steps to complete this part of the assignment:
 1. Delete the older record for whatever product you added.
 
 **HINT**: If you don't specify a WHERE clause, [you are going to have a bad time](https://imgflip.com/i/8iq872).
-
+ 
 <div align="center">-</div>
 
 #### UPDATE
@@ -171,6 +179,11 @@ ADD current_quantity INT;
 ```
 
 Then, using `UPDATE`, change the current_quantity equal to the **last** `quantity` value from the vendor_inventory details. 
+
+SELECT c.customer_id, c.customer_last_name, c.customer_first_name, cp.quantity*cp.cost_per_quantity AS total_spending FROM customer as c
+LEFT JOIN customer_purchases AS cp ON c.customer_id = cp.customer_id
+GROUP BY c.customer_id HAVING total_spending >2000
+ORDER BY customer_last_name, customer_first_name;
 
 **HINT**: This one is pretty hard. First, determine how to get the "last" quantity per product. Second, coalesce null values to 0 (if you don't have null values, figure out how to rearrange your query so you do.) Third, `SET current_quantity = (...your select statement...)`, remembering that WHERE can only accommodate one column. Finally, make sure you have a WHERE statement to update the right row, you'll need to use `product_units.product_id` to refer to the correct row within the product_units table. When you have all of these components, you can run the update statement.
 *** 
@@ -194,4 +207,13 @@ Consider, for example, concepts of labour, bias, LLM proliferation, moderating c
 
 ```
 Your thoughts...
+The article shows that behind every "automated" system are people: crowdsourced workers labelling images, moderators filtering content, and the researchers who decide what goes into a dataset. The first ethical issue is labour. ImageNet, one of the datasets that helped launch modern deep learning, was labelled by thousands of workers on Amazon Mechanical Turk, often for a few cents per task. Content moderators, who screen violent and disturbing material so platforms stay usable, do psychologically demanding work for low pay and little recognition. That work is largely unacknowledged, while the profit goes to the few who own or control access to the data and the models built on it. Calling these systems "automated" hides the human effort they depend on and the unequal way their value is shared.
+
+The second issue is bias. Algorithms learn from data made by people, so they absorb those people's assumptions and blind spots. In healthcare, my area of interest, the consequences can be serious. For decades, cardiovascular research relied mostly on male participants, so the "typical" heart attack symptoms in clinical guidance reflected men's experiences. A model trained on that evidence could miss or misread symptoms in women. Similarly, skin-condition image datasets that are mostly of lighter skin can produce diagnostic tools that perform worse for patients with darker skin. In both cases, the data isn't wrong so much as incomplete. It reflects what was studied, and who was included, when the dataset was made.
+
+As LLMs spread, this bias compounds. Foundation models are increasingly the base for new tools such as clinical documentation assistants, patient-facing chatbots and triage systems. Each tool inherits the biases of the model beneath it and may add its own through fine-tuning data. Because end users interact only with the final product, they cannot see these layers, and the bias becomes harder to trace and correct as it spreads.
+
+This raises the question of who audits training data and content before it reaches the public. Reviewing large datasets for harmful, inaccurate or unrepresentative content is slow and costly, and strict requirements could limit who can afford to build new tools. Still, treating the trade-off as a reason to skip oversight puts the burden of failure on the people least able to see it coming: patients receiving a recommendation, or users trusting a chatbot's answer. In healthcare, where errors affect people's wellbeing, the case for auditing data and testing it against diverse populations before deployment is especially strong.
+
+Finally, technology is not neutral just because the people behind it are invisible. Every dataset reflects decisions about what to collect, how to label it and what to exclude. When we don't know who made a dataset or in what context, it is hard to judge whether it suits a given purpose or generalizes beyond the setting it came from. A model trained on hospital records from one country, for example, may not transfer to patients with different demographics or care systems. Making that human layer visible, from the workers who label data to the researchers who shape it, is a prerequisite for using these systems responsibly and for making sure their benefits reach everyone.
 ```
